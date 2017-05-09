@@ -78,6 +78,14 @@ type RECORD_POS struct {
 }
 
 func main() {
+	db := mysql.New("tcp", "", "127.0.0.1:3306", "root", "root", "posdata")
+
+	err := db.Connect()
+	if err != nil {
+		fmt.Println("数据库无法连接")
+		return
+	}
+	defer db.Close()
 	for {
 		out := httpGet()
 		//fmt.Println(out)
@@ -87,14 +95,6 @@ func main() {
 		json.Unmarshal([]byte(out), &recs_pos)
 		//fmt.Println(recs_pos)
 
-		db := mysql.New("tcp", "", "127.0.0.1:3306", "root", "root", "posdata")
-
-		err := db.Connect()
-		if err != nil {
-			fmt.Println("数据库无法连接")
-			return
-		}
-		defer db.Close()
 		for _, rec_pos := range recs_pos {
 			fmt.Println(rec_pos)
 			sql := `insert into pos_record_tb(id,name,position_x,position_y,position_z,mac_address,parent_mac_address,bridge_mac_address,sw_version) values (%d,"%s",%d,%d,%d,"%s","%s","%s","%s")`
