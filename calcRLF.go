@@ -66,3 +66,29 @@ func calcRLF(starttime time.Time, timelast time.Duration , sects int ,db mysql.C
 	fmt.Println(pos_ones)
 }
 
+
+func  InWhichGrid(x int, y int) int {
+	if x <= 200  && y <= 200 {
+		return 1
+	}
+	if x >= 200  && y <= 200 {
+		return 2
+	}
+	if x <= 200  && y >= 200 {
+		return 3
+	}
+	if x >= 200  && y >= 200 {
+		return 4
+	}
+	return 0
+
+
+
+}
+
+func CalcDistance(x1 int,y1 int,x2 int,y2 int) float64 {
+	x := math.Abs(x1 - x2)
+	y := math.Abs(y1 - y2)
+	z := math.Sqrt(x*x+y*y)
+	return z
+}

@@ -13,6 +13,7 @@ import (
 	"github.com/ziutek/mymysql/mysql"
 	_ "github.com/ziutek/mymysql/native" // Native engine
 
+	"math"
 	// "github.com/kardianos/service"
 )
 
