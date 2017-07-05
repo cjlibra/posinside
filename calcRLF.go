@@ -68,7 +68,7 @@ func calcRLF(starttime time.Time, timelast time.Duration , labels string ,db mys
 	//fmt.Println(pos_ones)
 	CutIntoPiece(pos_ones)
 	fmt.Println(len(pos_many))
-	if len(pos_many) == 0 {
+	if len(pos_many) == 1 {
 		pos_many = append(pos_many,pos_ones)
 		fmt.Println(labels,"人员逗留")
 		return
@@ -124,8 +124,10 @@ func CutIntoPiece(pos_ones []POSITION){
 			pos_many = append(pos_many,pos_ones[B:seqid])
 			B = seqid
 			A = InWhichGrid(pos_one.Pos_x,pos_one.Pos_y) 
+			fmt.Println("aaa",pos_one.Pos_x)
 		}
 	}
+	pos_many = append(pos_many,pos_ones[B:])
 }
 
 func  InWhichGrid(x int, y int) int {
