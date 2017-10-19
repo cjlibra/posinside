@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"strings"
 
 	//"github.com/ziutek/mymysql/autorc"
 	//_ "github.com/ziutek/mymysql/thrsafe" // You may also use the native engine
@@ -58,27 +59,36 @@ type RECORD_POS struct {
 	Sw_version                string
 	Reporting_frequency       int
 	Ranging_frequency         int
-	Last_heard                time.Time
-	Announce_timestamp        time.Time
-	Position_update_timestamp time.Time
+	Last_heard                string
+	Announce_timestamp        string
+	Position_update_timestamp string
 	Root_formed               bool
-	Root_formed_timestamp     time.Time
+	Root_formed_timestamp     string
 	Node_type_id              int
 	Sequence_number           int
 	Sublocation_id            int
 	Battery_voltage           int
 	Battery_remaining_charge  int
-	Created_at                time.Time
-	Updated_at                time.Time
+	Created_at                string
+	Updated_at                string
 	Mobile_dimension_mode     int
-	Current_system_timestamp  time.Time
+	Current_system_timestamp  string
 	Hardware_bt_present       int
 	Device_groups             []string
 	Category_list             []string
 }
+func Cuttimestr(str string) string {
+
+	a1 := strings.Split(str,".")[0]
+	a2 := strings.Replace(a1,"T"," ",-1)
+	return a2
+
+
+
+}
 
 func main() {
-	db := mysql.New("tcp", "", "127.0.0.1:3306", "root", "root", "posdata")
+	db := mysql.New("tcp", "", "127.0.0.1:3306", "root", "root123root", "posdata")
 
 	err := db.Connect()
 	if err != nil {
@@ -97,8 +107,8 @@ func main() {
 
 		for _, rec_pos := range recs_pos {
 			fmt.Println(rec_pos)
-			sql := `insert into pos_record_tb(id,name,position_x,position_y,position_z,mac_address,parent_mac_address,bridge_mac_address,sw_version) values (%d,"%s",%d,%d,%d,"%s","%s","%s","%s")`
-			sql = fmt.Sprintf(sql, rec_pos.Id, rec_pos.Name, rec_pos.Position_x, rec_pos.Position_y, rec_pos.Position_z, rec_pos.Mac_address, rec_pos.Parent_mac_address, rec_pos.Bridge_mac_address, rec_pos.Sw_version)
+			sql := `insert into pos_record_tb(id,name,position_x,position_y,position_z,mac_address,parent_mac_address,bridge_mac_address,sw_version,created_at,last_heard,position_update_timestamp,current_system_timestamp) values (%d,"%s",%d,%d,%d,"%s","%s","%s","%s","%s","%s","%s","%s")`
+			sql = fmt.Sprintf(sql, rec_pos.Id, rec_pos.Name, rec_pos.Position_x, rec_pos.Position_y, rec_pos.Position_z, rec_pos.Mac_address, rec_pos.Parent_mac_address, rec_pos.Bridge_mac_address, rec_pos.Sw_version,Cuttimestr(rec_pos.Created_at),Cuttimestr(rec_pos.Last_heard),Cuttimestr(rec_pos.Position_update_timestamp),Cuttimestr(rec_pos.Current_system_timestamp))
 			_, err = db.Start(sql)
 			if err != nil {
 				fmt.Println("数据库无法插入" + err.Error())
