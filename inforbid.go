@@ -5,7 +5,7 @@ import (
 	"fmt"
 //       "io/ioutil"
 //	"net/http"
-//	"time"
+	"time"
 //	"strings"
 //
 	//"github.com/ziutek/mymysql/autorc"
@@ -14,7 +14,7 @@ import (
 //	"github.com/ziutek/mymysql/mysql"
 //	_ "github.com/ziutek/mymysql/native" // Native engine
        "labix.org/v2/mgo"
-       //"labix.org/v2/mgo/bson"
+       "labix.org/v2/mgo/bson"
 
 	// "github.com/kardianos/service"
 )
@@ -81,6 +81,7 @@ type RECORD_POS struct {
 }
 const  (
   URL = "127.0.0.1:27017"
+  timelayer = "2006-01-02 15:04:05"
 )
 type SETTING struct {
 	Id int
@@ -91,6 +92,14 @@ type SETTING struct {
 	X2 int
 	Y2 int
 	In int
+}
+type INWARN struct {
+	Id int 
+	Name string
+	Time string
+	Pos_x int
+	Pos_y int
+	Setting SETTING 
 }
 
 var setting SETTING
@@ -110,16 +119,66 @@ func main() {
 	col_setting := db.C("setting")
 	load_setting(col_setting)
 	fmt.Println(settings)
-	return
 
 	collection := db.C("positon")
-	iter := collection.Find(nil).Iter()
+	col_warn := db.C("inwarn")
+	iter := collection.Find(bson.M{"id" : bson.M{"$gt" : 38}}).Iter()
 	var result RECORD_POS
 	num := 0
 	for iter.Next(&result) {
 		num += 1
 		fmt.Printf("Result: %v. sqis : %d\n", result.Name,num)
+		in_warningots :=checkposbysetting(result)
+	        var inwarn INWARN	
+		fmt.Println("this is in_warningots",in_warningots)
+		for _, in_warningot := range(in_warningots){
+			inwarn.Id = result.Id
+			inwarn.Name = result.Name
+			inwarn.Time =  time.Now().String()
+			inwarn.Pos_x = result.Position_x
+			inwarn.Pos_y = result.Position_y
+			inwarn.Setting = settings[in_warningot]
+			err := col_warn.Insert(&inwarn)
+			if err != nil {
+				fmt.Println("inwarn can not insert:",err)
+                                
+			}
+
+		}
 	}
+}
+
+func checkposbysetting(rec_pos RECORD_POS ) []int {
+
+	var ret []int
+	t1,_ := time.ParseInLocation(timelayer,rec_pos.Last_heard,time.Local)
+	it1 := t1.Unix()
+	for inx ,setting := range(settings) {
+		ts,_ := time.ParseInLocation(timelayer,setting.S_time,time.Local)
+		its := ts.Unix()
+		te,_ := time.ParseInLocation(timelayer,setting.E_time,time.Local)
+		ite := te.Unix()
+		if it1 < its || it1 > ite {
+			continue
+		}else{
+			if rec_pos.Id != setting.Id {
+				continue
+			}else{
+				if rec_pos.Position_x < setting.X1 || rec_pos.Position_x > setting.X2 || rec_pos.Position_y < setting.Y1 || rec_pos.Position_y > setting.Y2 {
+					continue
+				}else{
+					ret = append(ret,inx)
+					continue
+
+				}
+			}
+
+
+		}
+	}
+	return ret
+
+
 }
 
 func load_setting(col *mgo.Collection){
