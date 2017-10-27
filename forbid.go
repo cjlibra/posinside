@@ -121,16 +121,12 @@ func main() {
 	fmt.Println(settings)
 
 	collection := db.C("positon")
-	col_warn := db.C("inwarn")
+	col_warn := db.C("inoutwarn")
 	iter := collection.Find(bson.M{"id" : bson.M{"$gt" : 37}}).Iter()
 	var result RECORD_POS
-	num := 0
 	for iter.Next(&result) {
-		num += 1
-		fmt.Printf("Result: %v. sqis : %d\n", result.Name,num)
 		warningots :=checkposbysetting(result)
 	        var inoutwarn INOUTWARN	
-		fmt.Println("this is in_warningots",warningots)
 		for _, warningot := range(warningots){
 			inoutwarn.Id = result.Id
 			inoutwarn.Name = result.Name
