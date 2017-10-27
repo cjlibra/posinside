@@ -1,11 +1,11 @@
-package main
+package setting 
 
 import (
-//	"encoding/json"
+	"encoding/json"
 	"fmt"
 //       "io/ioutil"
 //	"net/http"
-	"time"
+	//"time"
 //	"strings"
 //
 	//"github.com/ziutek/mymysql/autorc"
@@ -96,12 +96,12 @@ const  (
   URL = "127.0.0.1:27017"
   timelayer= "2006-01-02 15:04:05"
 )
-func main() {
+func Setzone(settingstr string) string {
 
         session ,err := mgo.Dial(URL)
 	if err != nil {
 		fmt.Println("数据库无法连接",err)
-		return
+		return err.Error()
 	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic,true)
@@ -109,6 +109,11 @@ func main() {
 	db := session.DB("posdata")
 	collection := db.C("setting")
 	var setting SETTING
+	err = json.Unmarshal([]byte(settingstr),&setting)
+	if err  != nil {
+		return "json string can not to object"
+	}
+	/*
 	setting.Id = 38
 	stime, _ := time.ParseInLocation(timelayer, "2017-10-22 23:36:25", time.Local)
 	etime := stime.Add(time.Hour*5)
@@ -119,10 +124,12 @@ func main() {
 	setting.X2 = 9000
 	setting.Y2 = 10000
 	setting.In = 0
-
+       */
 	err = collection.Insert(&setting)
 	if err != nil {
 		fmt.Println("setting can not insert:",err)
-		return
+		return err.Error()
 	}
+	return "ok"
 }
+

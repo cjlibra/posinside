@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"strings"
+	"mypack"
 
 	//"github.com/ziutek/mymysql/autorc"
 	//_ "github.com/ziutek/mymysql/thrsafe" // You may also use the native engine
@@ -18,10 +19,17 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 	w.Write(bb)
 
 }
+func SetZoneAlarm(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	settingstr := r.Form["set"]
+	ret := setting.Setzone(settingstr[0])
+	w.Write([]byte(ret))
 
+}
 func webserver(){
 
 	http.HandleFunc("/GetPosition", GetPosition)
+	http.HandleFunc("/SetZoneAlarm",SetZoneAlarm)
 
 	err := http.ListenAndServe(":10080", nil)
 	if err != nil {

@@ -93,7 +93,7 @@ type SETTING struct {
 	Y2 int
 	In int
 }
-type INWARN struct {
+type INOUTWARN struct {
 	Id int 
 	Name string
 	Time string
@@ -122,23 +122,23 @@ func main() {
 
 	collection := db.C("positon")
 	col_warn := db.C("inwarn")
-	iter := collection.Find(bson.M{"id" : bson.M{"$gt" : 38}}).Iter()
+	iter := collection.Find(bson.M{"id" : bson.M{"$gt" : 37}}).Iter()
 	var result RECORD_POS
 	num := 0
 	for iter.Next(&result) {
 		num += 1
 		fmt.Printf("Result: %v. sqis : %d\n", result.Name,num)
-		in_warningots :=checkposbysetting(result)
-	        var inwarn INWARN	
-		fmt.Println("this is in_warningots",in_warningots)
-		for _, in_warningot := range(in_warningots){
-			inwarn.Id = result.Id
-			inwarn.Name = result.Name
-			inwarn.Time =  time.Now().String()
-			inwarn.Pos_x = result.Position_x
-			inwarn.Pos_y = result.Position_y
-			inwarn.Setting = settings[in_warningot]
-			err := col_warn.Insert(&inwarn)
+		warningots :=checkposbysetting(result)
+	        var inoutwarn INOUTWARN	
+		fmt.Println("this is in_warningots",warningots)
+		for _, warningot := range(warningots){
+			inoutwarn.Id = result.Id
+			inoutwarn.Name = result.Name
+			inoutwarn.Time =  result.Last_heard 
+			inoutwarn.Pos_x = result.Position_x
+			inoutwarn.Pos_y = result.Position_y
+			inoutwarn.Setting = settings[warningot]
+			err := col_warn.Insert(&inoutwarn)
 			if err != nil {
 				fmt.Println("inwarn can not insert:",err)
                                 
@@ -158,17 +158,28 @@ func checkposbysetting(rec_pos RECORD_POS ) []int {
 		its := ts.Unix()
 		te,_ := time.ParseInLocation(timelayer,setting.E_time,time.Local)
 		ite := te.Unix()
-		if it1 < its || it1 > ite {
+		if it1 < its || it1 > ite && false {
 			continue
 		}else{
 			if rec_pos.Id != setting.Id {
 				continue
 			}else{
-				if rec_pos.Position_x < setting.X1 || rec_pos.Position_x > setting.X2 || rec_pos.Position_y < setting.Y1 || rec_pos.Position_y > setting.Y2 {
-					continue
+				if  setting.In == 0 {
+					if !(rec_pos.Position_x > setting.X1 && rec_pos.Position_y > setting.Y1 && rec_pos.Position_x < setting.X2 && rec_pos.Position_y < setting.Y2) {
+						continue
+					}else{
+						ret = append(ret,inx)
+						continue
+
+					}
 				}else{
-					ret = append(ret,inx)
-					continue
+					if rec_pos.Position_x > setting.X1 && rec_pos.Position_x < setting.X2 && rec_pos.Position_y > setting.Y1 && rec_pos.Position_y < setting.Y2 {
+						continue
+					}else{
+						ret = append(ret,inx)
+						continue
+
+					}
 
 				}
 			}
