@@ -4,12 +4,15 @@ package main
 import (
     "math"
     "fmt"
+    "mypack"
 
 
 )
 
 
 func main(){
+	mypack.GetNewWarning()
+	return
 	x := make(map[string] map[string] int )
 	x1 := make ( map[int] int )
 	x["a"] =  make( map[string] int )

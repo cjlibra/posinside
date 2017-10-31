@@ -1,4 +1,4 @@
-package setting 
+package  mypack 
 
 import (
 	"encoding/json"
@@ -97,6 +97,7 @@ const  (
   timelayer= "2006-01-02 15:04:05"
 )
 func Setzone(settingstr string) string {
+
 
         session ,err := mgo.Dial(URL)
 	if err != nil {

@@ -19,15 +19,26 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 	w.Write(bb)
 
 }
+func GetNewWarning(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	ret,retint := mypack.GetNewWarning()
+	if  retint !=  0 {
+		w.Write([]byte(ret + fmt.Sprintf("+++%d++",retint)))
+		return 
+	}
+ 	w.Write([]byte(ret))
+
+}
 func SetZoneAlarm(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	settingstr := r.Form["set"]
-	ret := setting.Setzone(settingstr[0])
+	ret := mypack.Setzone(settingstr[0])
 	w.Write([]byte(ret))
 
 }
 func webserver(){
 
+	http.HandleFunc("/GetNewWarning",GetNewWarning)
 	http.HandleFunc("/GetPosition", GetPosition)
 	http.HandleFunc("/SetZoneAlarm",SetZoneAlarm)
 
