@@ -29,6 +29,12 @@ func GetNewWarning(w http.ResponseWriter, r *http.Request) {
  	w.Write([]byte(ret))
 
 }
+func SetAccelRate(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	settingstr := r.Form["set"]
+	ret := mypack.SetAccel(settingstr[0])
+	w.Write([]byte(ret))
+}
 func SetZoneAlarm(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	settingstr := r.Form["set"]
@@ -41,6 +47,7 @@ func webserver(){
 	http.HandleFunc("/GetNewWarning",GetNewWarning)
 	http.HandleFunc("/GetPosition", GetPosition)
 	http.HandleFunc("/SetZoneAlarm",SetZoneAlarm)
+	http.HandleFunc("/SetAccelRate",SetAccelRate)
 
 	err := http.ListenAndServe(":10080", nil)
 	if err != nil {

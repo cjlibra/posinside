@@ -96,6 +96,32 @@ const  (
   URL = "127.0.0.1:27017"
   timelayer= "2006-01-02 15:04:05"
 )
+func SetAccel(settingstr string) string {
+        session ,err := mgo.Dial(URL)
+	if err != nil {
+		fmt.Println("数据库无法连接",err)
+		return err.Error()
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic,true)
+
+	db := session.DB("posdata")
+	collection := db.C("accelrate")
+	var settingobj interface{}
+	err = json.Unmarshal([]byte(settingstr),&settingobj)
+	if err != nil {
+		return "can not json to obj"
+	}
+	collection.Insert(&settingobj)
+	if err != nil {
+		fmt.Println("setting can not insert:",err)
+		return err.Error()
+	}
+	return "ok"
+
+
+
+}
 func Setzone(settingstr string) string {
 
 
