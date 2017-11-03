@@ -5,12 +5,23 @@ import (
     "math"
     "fmt"
     "mypack"
+    "os"
+    "io/ioutil"
 
 
 )
 
 
 func main(){
+	fn := "test.txt"
+
+	s := []byte("Hello World!")
+
+	ioutil.WriteFile(fn, s, os.ModeAppend)
+	ioutil.WriteFile(fn, s, os.ModeAppend)
+	ioutil.WriteFile(fn, s, os.ModeAppend)
+	ioutil.WriteFile(fn, s, os.ModeAppend)
+	return
 	mypack.GetNewWarning()
 	return
 	x := make(map[string] map[string] int )
