@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"strings"
+	"strconv"
 	"mypack"
 
 	//"github.com/ziutek/mymysql/autorc"
@@ -21,10 +22,15 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 }
 func GetNewWarning(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	ret,retint := mypack.GetNewWarning()
-	if  retint !=  0 {
-		w.Write([]byte(ret + fmt.Sprintf("+++%d++",retint)))
-		return 
+	userid_t :=  r.Form["id"]
+	userid,_ := strconv.Atoi(userid_t[0])
+	in_t := r.Form["in"]
+	in,_ := strconv.Atoi(in_t[0])
+	ret := mypack.GetInOutWarn(userid,in)
+	_,err := json.Marshal(ret)
+	if err != nil {
+		w.Write([]byte("error"+ret))
+		return
 	}
  	w.Write([]byte(ret))
 

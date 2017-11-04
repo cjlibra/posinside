@@ -13,6 +13,9 @@ import (
 
 
 func main(){
+	fmt.Println(mypack.GetInOutWarn(38,0))
+	//fmt.Println(	mypack.GetFallInfo())
+	return
 	fn := "test.txt"
 
 	s := []byte("Hello World!")

@@ -62,8 +62,8 @@ func GetFallInfo() string {
 //	fmt.Println(actionId.ActionID)
 	db_action := session.DB(actionId.ActionID)
 	col_action := db_action.C("history")
-	var  actions  interface{}
-	err = col_action.Find(nil).One(&actions)
+	var  actions  []interface{}
+	err = col_action.Find(nil).All(&actions)
 //	fmt.Println(actions)
 	if err != nil {
 		fmt.Println(err.Error())
