@@ -50,6 +50,7 @@ import (
 "category_list":[]
 */
 type RECORD_POS struct {
+	IId bson.ObjectId `bson:"_id"`
 	Id                        int
 	Name                      string
 	Position_x                int
@@ -124,23 +125,29 @@ func main() {
 	col_warn := db.C("inoutwarn")
 	iter := collection.Find(bson.M{"id" : bson.M{"$gt" : 37}}).Iter()
 	var result RECORD_POS
-	for iter.Next(&result) {
-		warningots :=checkposbysetting(result)
-	        var inoutwarn INOUTWARN	
-		for _, warningot := range(warningots){
-			inoutwarn.Id = result.Id
-			inoutwarn.Name = result.Name
-			inoutwarn.Time =  result.Last_heard 
-			inoutwarn.Pos_x = result.Position_x
-			inoutwarn.Pos_y = result.Position_y
-			inoutwarn.Setting = settings[warningot]
-			err := col_warn.Insert(&inoutwarn)
-			if err != nil {
-				fmt.Println("inwarn can not insert:",err)
-                                
-			}
+	for {
+		for iter.Next(&result) {
+			warningots :=checkposbysetting(result)
+			var inoutwarn INOUTWARN	
+			for _, warningot := range(warningots){
+				inoutwarn.Id = result.Id
+				inoutwarn.Name = result.Name
+				inoutwarn.Time =  result.Last_heard 
+				inoutwarn.Pos_x = result.Position_x
+				inoutwarn.Pos_y = result.Position_y
+				inoutwarn.Setting = settings[warningot]
+				err := col_warn.Insert(&inoutwarn)
+				if err != nil {
+					fmt.Println("inwarn can not insert:",err)
 
+				}
+
+			}
 		}
+		time.Sleep(time.Second*3)
+		fmt.Println("start another running")
+
+		iter = collection.Find(bson.M{"id" : bson.M{"$gt" : 37},"_id":bson.M{"$gt" : result.IId }}).Iter()
 	}
 }
 
