@@ -50,7 +50,7 @@ func main() {
 
 	//  Socket to talk to server
 
-	fmt.Println("Connecting to hello world server...")
+	fmt.Println("Connecting to zmq server...")
 
 	subscriber, _ := zmq.NewSocket(zmq.SUB)
 

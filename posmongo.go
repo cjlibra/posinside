@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 	"strings"
+	zmq "github.com/pebbe/zmq4"
 
 	//"github.com/ziutek/mymysql/autorc"
 	//_ "github.com/ziutek/mymysql/thrsafe" // You may also use the native engine
@@ -61,26 +62,28 @@ type RECORD_POS struct {
 	Sw_version                string
 	Reporting_frequency       int
 	Ranging_frequency         int
-	Last_heard                string
-	Announce_timestamp        string
-	Position_update_timestamp string
+	Last_heard               time.Time 
+	Announce_timestamp       time.Time 
+	Position_update_timestamp time.Time 
 	Root_formed               bool
-	Root_formed_timestamp     string
+	Root_formed_timestamp     time.Time 
 	Node_type_id              int
 	Sequence_number           int
 	Sublocation_id            int
 	Battery_voltage           int
 	Battery_remaining_charge  int
-	Created_at                string
-	Updated_at                string
+	Created_at                time.Time 
+	Updated_at                time.Time 
 	Mobile_dimension_mode     int
-	Current_system_timestamp  string
+	Current_system_timestamp  time.Time 
 	Hardware_bt_present       int
 	Device_groups             []string
 	Category_list             []string
 }
 const  (
   URL = "127.0.0.1:27017"
+  ZMQ_URL = "tcp://192.168.0.100:7001"
+  NODE_URL = "http://192.168.0.100/nodes.json"
 )
 func Cuttimestr(str string) string {
 
@@ -103,30 +106,75 @@ func main() {
 
 	db := session.DB("posdata")
 	collection := db.C("positon")
-	for {
-		out := httpGet()
+	out := httpGet()
 		//fmt.Println(out)
 		//var rec_pos RECORD_POS
-		var recs_pos []RECORD_POS
+	var recs_pos []RECORD_POS
 
-		json.Unmarshal([]byte(out), &recs_pos)
+	json.Unmarshal([]byte(out), &recs_pos)
 		//fmt.Println(recs_pos)
 
-		for _, rec_pos := range recs_pos {
-			err = collection.Insert(&rec_pos)
-			fmt.Println(rec_pos)
-			if err != nil {
-				fmt.Println("数据库无法插入" + err.Error())
-				time.Sleep(time.Second * 5)
-				continue
-			}
+	fmt.Println("Connecting to zmq server...")
+
+	subscriber, _ := zmq.NewSocket(zmq.SUB)
+
+	defer subscriber.Close()
+	subscriber.SetSubscribe("#pos")
+
+	subscriber.Connect(ZMQ_URL)
+
+
+	for {
+
+		reply, _ := subscriber.Recv(0)
+
+		fmt.Println(reply)
+		rec_pos := UpdateRecPos(reply,recs_pos)
+		err = collection.Insert(&rec_pos)
+		fmt.Println(rec_pos)
+		if err != nil {
+			fmt.Println("数据库无法插入" + err.Error())
+			continue
 		}
-		time.Sleep(time.Second * 1)
 	}
+	
+}
+func UpdateRecPos(sub_reply string , recs_pos []RECORD_POS) RECORD_POS  {
+	type ZMQPOS struct {
+		Ts  int64 `bson:"ts"`
+		Id  int `bson:"id"`
+		X   int `bson:"x"`
+		Y   int `bson:"y"`
+		Z   int `bson:"z"` 
+	}
+	reply := strings.Replace(sub_reply,"#pos","",-1)
+	var zmqpos ZMQPOS
+	err := json.Unmarshal([]byte(reply),&zmqpos)
+	if err != nil {
+		fmt.Println(reply,err.Error())
+		return  RECORD_POS{}
+	}
+	for seq,rec_pos := range recs_pos {
+		if rec_pos.Id ==  zmqpos.Id {
+			recs_pos[seq].Position_x = zmqpos.X
+			recs_pos[seq].Position_y = zmqpos.Y
+			recs_pos[seq].Position_z  = zmqpos.Z
+			recs_pos[seq].Last_heard = time.Unix(zmqpos.Ts,0).In(time.Local)
+			return recs_pos[seq]
+		}
+
+	}
+	return  RECORD_POS{} 
+
+
+	//  Socket to talk to server
+
+
+
 }
 
 func httpGet() string {
-	resp, err := http.Get("http://192.168.0.100/nodes.json")
+	resp, err := http.Get(NODE_URL)
 	if err != nil {
 		return "http get error"
 

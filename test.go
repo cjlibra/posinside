@@ -7,12 +7,15 @@ import (
     "mypack"
     "os"
     "io/ioutil"
+    "time"
 
 
 )
 
 
 func main(){
+        fmt.Println(time.Unix())
+	return
 	fmt.Println(mypack.GetInOutWarn(38,0))
 	//fmt.Println(	mypack.GetFallInfo())
 	return
